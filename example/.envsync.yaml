@@ -1,0 +1,14 @@
+schema:
+  variables:
+    PORT:
+      required: true
+      type: number
+      default: "3000"
+      description: "Server port"
+
+rules:
+  require_all: false
+  allow_extra: true
+  ignore_patterns:
+    - "^TEMP_.*"
+    - "^DEBUG_.*"
