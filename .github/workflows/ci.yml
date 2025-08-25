@@ -43,38 +43,38 @@ jobs:
           files: ./coverage.out
           fail_ci_if_error: true
 
-  release:
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+release:
+  needs: build-and-test
+  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.21"
 
     - name: Build binary
       run: |
         GOOS=linux GOARCH=amd64 go build -o envsync-linux-amd64 ./main.go
         GOOS=darwin GOARCH=amd64 go build -o envsync-darwin-amd64 ./main.go
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: envsync-binaries
-          path: |
-            envsync-linux-amd64
-            envsync-darwin-amd64
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: envsync-binaries
+        path: |
+          envsync-linux-amd64
+          envsync-darwin-amd64
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            envsync-linux-amd64
-            envsync-darwin-amd64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          envsync-linux-amd64
+          envsync-darwin-amd64
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
