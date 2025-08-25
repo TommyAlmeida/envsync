@@ -20,3 +20,5 @@ lint:
 clean:
 	rm -rf bin/
 	rm -f coverage.out coverage.html
+
+all: clean lint test build
