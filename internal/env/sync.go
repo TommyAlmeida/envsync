@@ -53,10 +53,10 @@ func (s *Syncer) getDefaultValue(key, originalValue string) string {
     if defaultVal, exists := s.config.Defaults[key]; exists {
         return defaultVal
     }
-    
+
     if variable, exists := s.config.Schema.Variables[key]; exists && variable.Default != "" {
         return variable.Default
     }
-    
-    return fmt.Sprintf("TODO_%s", key)
+
+    return originalValue
 }
