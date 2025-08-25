@@ -14,12 +14,18 @@ type Config struct {
     Schema   schema.Schema            `yaml:"schema"`
     Defaults map[string]string        `yaml:"defaults"`
     Rules    Rules                    `yaml:"rules"`
+		Adapters []AdapterConfig        `yaml:"adapters"`
 }
 
 type Rules struct {
     RequireAll     bool     `yaml:"require_all"`
     AllowExtra     bool     `yaml:"allow_extra"`
     IgnorePatterns []string `yaml:"ignore_patterns"`
+}
+
+type AdapterConfig struct {
+    Name   string            `yaml:"name"`
+    Config map[string]string `yaml:"config"`
 }
 
 func Load() (*Config, error) {
