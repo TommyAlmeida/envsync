@@ -2,25 +2,26 @@ package config
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/spf13/viper"
-	"github.com/tommyalmeida/envsync/pkg/schema"
 	"gopkg.in/yaml.v3"
+
+	"github.com/tommyalmeida/envsync/pkg/schema"
 )
 
 type Config struct {
-    Schema   schema.Schema            `yaml:"schema"`
-    Defaults map[string]string        `yaml:"defaults"`
-    Rules    Rules                    `yaml:"rules"`
-		Adapters []AdapterConfig        `yaml:"adapters"`
+	Schema   schema.Schema     `yaml:"schema"`
+	Defaults map[string]string `yaml:"defaults"`
+	Rules    Rules             `yaml:"rules"`
+	Adapters []AdapterConfig        `yaml:"adapters"`
 }
 
 type Rules struct {
-    RequireAll     bool     `yaml:"require_all"`
-    AllowExtra     bool     `yaml:"allow_extra"`
-    IgnorePatterns []string `yaml:"ignore_patterns"`
+	RequireAll     bool     `yaml:"require_all"`
+	AllowExtra     bool     `yaml:"allow_extra"`
+	IgnorePatterns []string `yaml:"ignore_patterns"`
 }
 
 type AdapterConfig struct {
@@ -44,7 +45,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	if err := yaml.Unmarshal(configFile, &cfg); err != nil {
+	err = yaml.Unmarshal(configFile, &cfg)
+
+	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
@@ -52,7 +55,7 @@ func Load() (*Config, error) {
 		cfg.Schema.Variables = make(map[string]schema.Variable)
 	}
 
-	log.Printf("Loaded config data: %+v", cfg)
+	slog.Info("Loaded config data", "cfg", cfg)
 
 	return &cfg, nil
 }

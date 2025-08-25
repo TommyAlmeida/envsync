@@ -1,0 +1,13 @@
+version: "2"
+
+run:
+  timeout: 3m
+  tests: false
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - unused
+    - errcheck

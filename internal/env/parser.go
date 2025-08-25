@@ -9,9 +9,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type EnvVars map[string]string
+type Vars map[string]string
 
-func ParseFile(filename string) (EnvVars, error) {
+func ParseFile(filename string) (Vars, error) {
 	if filename == "" {
 		return nil, fmt.Errorf("filename cannot be empty")
 	}
@@ -31,10 +31,10 @@ func ParseFile(filename string) (EnvVars, error) {
 		return nil, fmt.Errorf("failed to read env file %s: %w", filename, err)
 	}
 
-	return EnvVars(vars), nil
+	return Vars(vars), nil
 }
 
-func (e EnvVars) Keys() []string {
+func (e Vars) Keys() []string {
 	if e == nil {
 		return nil
 	}
@@ -50,7 +50,7 @@ func (e EnvVars) Keys() []string {
 	return keys
 }
 
-func (e EnvVars) WriteToFile(filename string) error {
+func (e Vars) WriteToFile(filename string) error {
 	if e == nil {
 		return fmt.Errorf("EnvVars is nil")
 	}

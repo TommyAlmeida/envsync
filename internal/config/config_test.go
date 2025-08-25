@@ -1,4 +1,4 @@
-package config
+package config_test
 
 import (
 	"os"
@@ -7,12 +7,14 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tommyalmeida/envsync/internal/config"
 )
 
 func TestLoad_DefaultConfig(t *testing.T) {
 	viper.Reset()
 
-	cfg, err := Load()
+	cfg, err := config.Load()
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
@@ -47,7 +49,7 @@ rules:
 
 	viper.SetConfigFile(filePath)
 
-	cfg, err := Load()
+	cfg, err := config.Load()
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
@@ -58,7 +60,7 @@ rules:
 	require.True(t, v.Required)
 	require.Equal(t, "string", v.Type)
 
-	require.Equal(t, "very much bar here", cfg.Defaults["BAR"]) 
+	require.Equal(t, "very much bar here", cfg.Defaults["BAR"])
 
 	require.True(t, cfg.Rules.RequireAll)
 	require.False(t, cfg.Rules.AllowExtra)

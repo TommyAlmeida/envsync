@@ -1,0 +1,131 @@
+name: CI/CD Pipeline
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+  checks: write
+  actions: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ["1.23.x", "1.22.x"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          check-latest: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m --verbose
+
+      - name: Run tests with coverage
+        run: |
+          go test ./... -v -coverprofile=coverage.out -covermode=atomic
+          go tool cover -func=coverage.out
+
+      - name: Build application
+        run: make build
+
+  release:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          check-latest: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-1.23.x-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-1.23.x-
+
+      - name: Get version
+        id: version
+        run: echo "version=$(git describe --tags --always)" >> $GITHUB_OUTPUT
+
+      - name: Build cross-platform binaries
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o envsync-linux-amd64 -ldflags "-X main.version=${{ steps.version.outputs.version }}" ./main.go
+          GOOS=darwin GOARCH=amd64 go build -o envsync-darwin-amd64 -ldflags "-X main.version=${{ steps.version.outputs.version }}" ./main.go
+          GOOS=darwin GOARCH=arm64 go build -o envsync-darwin-arm64 -ldflags "-X main.version=${{ steps.version.outputs.version }}" ./main.go
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: envsync-binaries-${{ steps.version.outputs.version }}
+          path: |
+            envsync-linux-amd64
+            envsync-darwin-amd64
+            envsync-darwin-arm64
+          retention-days: 5
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            envsync-linux-amd64
+            envsync-darwin-amd64
+            envsync-darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
