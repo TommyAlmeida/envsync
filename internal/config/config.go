@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
 	"github.com/spf13/viper"
@@ -53,8 +52,6 @@ func Load() (*Config, error) {
 	if cfg.Schema.Variables == nil {
 		cfg.Schema.Variables = make(map[string]schema.Variable)
 	}
-
-	slog.Info("Loaded config data", "cfg", cfg)
 
 	return &cfg, nil
 }

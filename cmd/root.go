@@ -9,11 +9,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tommyalmeida/envsync/internal/adapter"
-	"github.com/tommyalmeida/envsync/internal/adapter/aws"
 	"github.com/tommyalmeida/envsync/internal/config"
 	"github.com/tommyalmeida/envsync/internal/env"
 	"github.com/tommyalmeida/envsync/internal/output"
+	"github.com/tommyalmeida/envsync/internal/registry"
 	"github.com/tommyalmeida/envsync/internal/state"
 )
 
@@ -196,13 +195,15 @@ func runPull(targetFile, prefix string, dryRun bool) error {
 		return fmt.Errorf("no adapter configured. Please specify adapter in config file")
 	}
 
-	adp, err := adapter.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+	adp, err := registry.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+
 	if err != nil {
 		return fmt.Errorf("failed to create adapter: %w", err)
 	}
 
 	remoteState := state.NewRemoteState(cfg, adp)
 	result, err := remoteState.Pull(prefix, targetFile, dryRun)
+
 	if err != nil {
 		return fmt.Errorf("failed to pull from remote: %w", err)
 	}
@@ -225,13 +226,15 @@ func runPush(sourceFile, prefix string, dryRun bool) error {
 		return fmt.Errorf("no adapter configured. Please specify adapter in config file")
 	}
 
-	adp, err := adapter.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+	adp, err := registry.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+
 	if err != nil {
 		return fmt.Errorf("failed to create adapter: %w", err)
 	}
 
 	remoteState := state.NewRemoteState(cfg, adp)
 	result, err := remoteState.Push(sourceFile, prefix, dryRun)
+
 	if err != nil {
 		return fmt.Errorf("failed to push to remote: %w", err)
 	}
@@ -254,13 +257,15 @@ func runRemoteDiff(localFile, prefix string) error {
 		return fmt.Errorf("no adapter configured. Please specify adapter in config file")
 	}
 
-	adp, err := adapter.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+	adp, err := registry.Create(cfg.Adapter.Name, cfg.Adapter.Config)
+
 	if err != nil {
 		return fmt.Errorf("failed to create adapter: %w", err)
 	}
 
 	remoteState := state.NewRemoteState(cfg, adp)
 	diff, err := remoteState.Diff(localFile, prefix)
+	
 	if err != nil {
 		return fmt.Errorf("failed to diff with remote: %w", err)
 	}
@@ -302,12 +307,7 @@ func outputJSON(v any) error {
 	return encoder.Encode(v)
 }
 
-func registerAdapters(){
-	adapter.Register("aws", aws.NewSSMAdapter)
-}
 
-func Execute() error {
-	registerAdapters()
-	
+func Execute() error {	
 	return rootCmd.Execute()
 }

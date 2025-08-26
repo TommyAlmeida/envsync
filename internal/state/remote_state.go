@@ -46,6 +46,7 @@ func (rs *RemoteState) Pull(prefix string, targetFile string, dryRun bool) (Remo
 	}
 
 	var localVars env.Vars
+	
 	if targetFile != "" {
 		localVars, err = env.ParseFile(targetFile)
 
@@ -139,6 +140,7 @@ func (rs *RemoteState) Diff(localFile string, prefix string) (env.DiffResult, er
 func (rs *RemoteState) atomicWriteFile(targetFile string, vars env.Vars) error {
 	dir := filepath.Dir(targetFile)
 	tempFile, err := os.CreateTemp(dir, ".envsync-*.tmp")
+
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}

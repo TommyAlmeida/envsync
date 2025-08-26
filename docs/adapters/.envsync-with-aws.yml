@@ -1,0 +1,16 @@
+schema:
+  variables:
+    PORT:
+      required: true
+      type: number
+      default: "3000"
+      description: "Server port"
+    DATABASE_URL:
+      required: false
+      type: string
+      description: "Database connection URL"
+
+adapter:
+  name: "aws-ssm"
+  config:
+    region: "us-east-1"
