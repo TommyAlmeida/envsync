@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/tommyalmeida/envsync/internal/env"
+	"github.com/tommyalmeida/envsync/internal/state"
 )
 
 type Formatter struct {
@@ -132,6 +133,62 @@ func (f *Formatter) PrintSyncResult(result env.SyncResult, dryRun bool) error {
 		log.Printf("\n%s\n", f.yellow("This was a dry run. Use --dry-run=false to apply changes."))
 	} else {
 		log.Printf("\n%s\n", f.green("✓ Sync completed successfully"))
+	}
+
+	return nil
+}
+
+func (f *Formatter) PrintRemoteSyncResult(result state.RemoteSyncResult, dryRun bool) error {
+	action := "Synced"
+	if dryRun {
+		action = "Would sync"
+	}
+
+	totalChanges := len(result.Added) + len(result.Updated) + len(result.Deleted)
+	
+	if totalChanges == 0 {
+		fmt.Println(f.green("✓ No variables need to be synced"))
+		return nil
+	}
+
+	log.Printf("%s between %s and %s:\n\n", action, f.bold(result.Source), f.bold(result.Target))
+
+	if len(result.Added) > 0 {
+		log.Printf("%s (%d):\n", f.bold("Added"), len(result.Added))
+		for _, key := range result.Added {
+			log.Printf("  %s %s\n", f.green("+"), key)
+		}
+		fmt.Println()
+	}
+
+	if len(result.Updated) > 0 {
+		log.Printf("%s (%d):\n", f.bold("Updated"), len(result.Updated))
+		for _, key := range result.Updated {
+			log.Printf("  %s %s\n", f.yellow("~"), key)
+		}
+		fmt.Println()
+	}
+
+	if len(result.Deleted) > 0 {
+		log.Printf("%s (%d):\n", f.bold("Deleted"), len(result.Deleted))
+		for _, key := range result.Deleted {
+			log.Printf("  %s %s\n", f.red("-"), key)
+		}
+		fmt.Println()
+	}
+
+	if len(result.Skipped) > 0 {
+		log.Printf("%s (%d):\n", f.bold("Skipped"), len(result.Skipped))
+		for _, key := range result.Skipped {
+			log.Printf("  %s %s\n", f.blue("!"), key)
+		}
+		fmt.Println()
+	}
+
+	if dryRun {
+		log.Printf("%s\n", f.yellow("This was a dry run. Use --dry-run=false to apply changes."))
+	} else {
+		log.Printf("%s\n", f.green("✓ Sync completed successfully"))
 	}
 
 	return nil

@@ -15,7 +15,7 @@ type Config struct {
 	Schema   schema.Schema     `yaml:"schema"`
 	Defaults map[string]string `yaml:"defaults"`
 	Rules    Rules             `yaml:"rules"`
-	Adapters []AdapterConfig        `yaml:"adapters"`
+	Adapter  AdapterConfig            `yaml:"adapter"`
 }
 
 type Rules struct {
@@ -25,8 +25,8 @@ type Rules struct {
 }
 
 type AdapterConfig struct {
-    Name   string            `yaml:"name"`
-    Config map[string]string `yaml:"config"`
+	Name   string                 `yaml:"name"`
+	Config map[string]any `yaml:"config"`
 }
 
 func Load() (*Config, error) {
@@ -34,19 +34,18 @@ func Load() (*Config, error) {
 
 	cfg.Rules.AllowExtra = true
 	cfg.Defaults = make(map[string]string)
+	cfg.Adapter.Config = make(map[string]any)
 
 	if viper.ConfigFileUsed() == "" {
 		return &cfg, nil
 	}
 
 	configFile, err := os.ReadFile(viper.ConfigFileUsed())
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	err = yaml.Unmarshal(configFile, &cfg)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
